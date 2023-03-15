@@ -106,5 +106,56 @@ module Generator :
     val partitioned_map : ('a -> bool) -> (('a -> 'b) * ('a -> 'b)) -> 'a t -> 'b t
   end =
   struct
-    (* TODO : Implémenter le type et tous les éléments de la signature *)
+    type 'a t = unit -> 'a
+
+    let next gen = gen ()
+
+    let const x = fun () -> x
+
+    let bool prob = fun () -> Random.float 1.0 < prob
+
+    let int a b = fun () -> Random.int (b - a + 1) + a
+
+    let int_nonneg n = int 0 n
+
+    let float x y = fun () -> Random.float (y -. x) +. x
+
+    let float_nonneg x = float 0.0 x
+
+    let char = fun () -> char_of_int (int 0 255 ())
+
+    let alphanum : char t =
+      let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" in
+      fun () -> chars.[Random.int (String.length chars)]
+
+    let string n gen =
+      let rec generate i acc =
+        if i = n then List.rev acc |> String.concat ""
+        else generate (i + 1) ((gen ()) :: acc)
+      in
+      fun () -> generate 0 []
+
+    
+    let combine gen1 gen2 =
+      let f () = (gen1 (), gen2 ()) in 
+      f
+
+    
+      let g () = f (gen ()) in
+      g
+
+    
+    let filter p gen =
+      let rec f () =
+        let x = gen () in
+        if p x then x else f ()
+      in
+      f
+
+    let partitioned_map p (f1, f2) gen =
+      let rec f () =
+        let x = gen () in
+        if p x then f1 x else f2 x
+      in
+      f
   end ;;
