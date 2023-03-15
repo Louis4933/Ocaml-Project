@@ -110,8 +110,10 @@ module Generator :
 
     let next gen = gen ()
 
+    (* GENERATEUR CONSTANT *)
     let const x = fun () -> x
 
+    (* GENERATEURS DE TYPES DE BASE *)
     let bool prob = fun () -> Random.float 1.0 < prob
 
     let int a b = fun () -> Random.int (b - a + 1) + a
@@ -128,22 +130,31 @@ module Generator :
       let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" in
       fun () -> chars.[Random.int (String.length chars)]
 
+    (* GENERATEUR DE CHAINE DE CARACTERES *)
     let string n gen =
       let rec generate i acc =
-        if i = n then List.rev acc |> String.concat ""
+        if i = n then String.concat "" List.rev acc (*if i = n then List.rev acc |> String.concat ""*)
+        else generate (i + 1) ((gen ()) :: acc)
+      in
+      fun () -> generate 0 []
+    
+    (* GENERATEUR DE LISTE *)
+    (* Identique au générateur de chaine de caracteres mais gen est ici un generateur aleatoires d'elements *)
+    let list n gen =
+      let rec generate i acc =
+        if i = n then List.rev acc
         else generate (i + 1) ((gen ()) :: acc)
       in
       fun () -> generate 0 []
 
-    
-    let combine gen1 gen2 =
-      let f () = (gen1 (), gen2 ()) in 
-      f
+    (* TRANSFORMATIONS *)
+    let combine fst_gen snd_gen () =
+      let x = fst_gen () in
+      let y = snd_gen () in
+      (x, y)
 
-    
-      let g () = f (gen ()) in
-      g
-
+    let map f gen =
+      fun () -> f (gen ())
     
     let filter p gen =
       let rec f () =
