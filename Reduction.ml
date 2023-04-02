@@ -84,7 +84,30 @@ module Reduction :
     val filter : ('a -> bool) -> 'a t -> 'a t
   end =
   struct
-    type 'a t = 'a -> 'a list ;;
+  type 'a t = 'a -> 'a list ;;
 
-    (* TODO : Implémenter tous les éléments de la signature manquants *)
+  let empty = fun x -> [] ;;
+
+  (* les bornes ne sont pas comprises donc on ne renvoie pas n *)
+  let int n = if n = 0 then [] else [0; (abs n); -abs n] ;;
+
+  (* List.init crée une liste d'entiers de 0 à n en prenant en paramètres la taille de la liste à créer et une fonction appliquée à chaque élément *)
+  let int_nonneg n = if n = 0 then [] else List.init (n+1) (fun i -> i) ;;
+
+  let float x = if x = 0.0 then [] else [0.0; abs_float x; -.(abs_float x)] ;;
+
+  let float_nonneg x = if x = 0.0 then [] else List.init 10 (fun i -> (float i) *. (x /. 10.0)) ;;
+
+  let char c = [] ;;
+
+  (*let alphanum c =*)
+
+  let string red s = [] ;;
+
+  let list red l = [] ;;
+
+  let combine fst_red snd_red (a, b) = [] ;;
+
+  let filter p red x = [] ;;
+  
   end ;;
