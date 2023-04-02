@@ -124,7 +124,7 @@ module Generator :
 
     let float_nonneg x = float 0.0 x
 
-    let char = fun () -> char_of_int (int 0 255 ())
+    let char = fun () -> char_of_int (int 97 122 ())
 
     let alphanum : char t =
       let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" in

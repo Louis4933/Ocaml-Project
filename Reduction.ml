@@ -32,7 +32,7 @@ module Reduction :
     val float : float t
 
     (** Stratégie de réduction sur les flottants positifs
-      * @param x flottant listlistlistlistllistist
+      * @param x flottant
       * @return  liste de flottants positifs plus "simples" entre `0` et `x`
       *)
     val float_nonneg : float t
