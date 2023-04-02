@@ -137,18 +137,22 @@ module Reduction :
     List.map char_of_int tab
   ;;
 
-  let string red s =
-    let rec dernier (h :: t) = match t with
-      | [] -> h  
-      | _ -> dernier t 
-    in 
-      List.fold_left (fun acc c -> acc @ [String.concat (dernier acc) (red c)]) [""] s
+  let rec string red s =
+    let l = String.length s in
+    let rec aux i =
+      if i = l then []
+      else List.map (fun c -> (String.make 1 c)^(String.sub s (i+1) (l-i-1))) (red s.[i]) @ (aux (i+1))
+    in aux 0
 
-  let list red l =
-    let rec dernier (h :: t) = match t with
-      | [] -> h
-      | _ -> dernier t in
-    List.fold_left (fun ps x -> ps @ [dernier ps @ [red x]]) [[]] l ;;
+  
+    let list red l =
+      let rec reduce_list = function
+        | [] -> [[]]
+        | hd :: tl ->
+            let reduced_hd = red hd in
+            let reduced_tl = reduce_list tl in
+            List.concat (List.map (fun s -> List.map (fun l -> s :: l) reduced_tl) reduced_hd)
+      in reduce_list l
 
   (* Produit toutes les paires (a', b') où a' est une réduction de a selon fst_red, et b' est une réduction de b selon snd_red.
      On itère sur a' selon fst_red avec fold_left,

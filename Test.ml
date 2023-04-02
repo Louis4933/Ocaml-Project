@@ -39,18 +39,16 @@ module Test :
   struct
     type 'a t = { generator : 'a Generator.t; reduction : 'a Reduction.t; property : 'a Property.t }
 
-    val make_test : 'a Generator.t -> 'a Reduction.t -> 'a Property.t -> 'a t =
-      fun generator reduction property ->
+    let make_test generator reduction property = 
         { generator = generator; reduction = reduction; property = property }
 
-    val check : int -> 'a t -> bool =
-      fun n test ->
+    let check n test =
         let rec aux i =
           (* si i=n càd si on a fini de vérifier toutes les valeurs on renvoie true *)
           if i = n then true
           else
             (* sinon on génère une nouvelle valeur avec le générateur test.generateur *)
-            let x = Generator.generate test.generator in
+            let x = Generator.next test.generator in
             (* on réduit la valeur avec test.reduction *)
             let x' = Reduction.reduce test.reduction x in
             (* la fonction auxiliaire teste si la propriété est vraie sur la valeur réduite et appelle aux(i+1), sinon elle renvoie false*)
@@ -59,13 +57,12 @@ module Test :
         n > 0 && aux 0
 
 
-    val fails_at : int -> 'a t -> 'a option =
-      fun n test ->
+    let fails_at n test = 
         let rec aux i =
           (* si toutes les valeurs vérifient la propriété on renvoie None *)
           if i = n then None
           else
-            let x = Generator.generate test.generator in
+            let x = Generator.next test.generator in
             let x' = Reduction.reduce test.reduction x in
             (* si la valeur réduite ne vérifie pas la propriété alors un contre-exemple est renvoyé, 
                sinon on continue à parcourir les valeurs à tester *)
@@ -75,8 +72,7 @@ module Test :
  
     (* retourne une liste de paires (test, value) où value est soit None si toutes les valeurs à tester vérifient la propriété, 
        soit la première valeur qui ne vérifie pas la propriété *)
-    val execute : int -> ('a t) list -> ('a t * 'a option) list =
-      fun n tests ->
+    let execute n test = 
         (* la fonction exécute les tests un par un en appelant la fonction fails_at avec n comme argument pour chaque test de la liste *)
         List.map (fun test -> (test, fails_at n test)) tests
 
