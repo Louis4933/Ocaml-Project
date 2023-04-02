@@ -32,7 +32,7 @@ module Reduction :
     val float : float t
 
     (** Stratégie de réduction sur les flottants positifs
-      * @param x flottant positif
+      * @param x flottant listlistlistlistllistist
       * @return  liste de flottants positifs plus "simples" entre `0` et `x`
       *)
     val float_nonneg : float t
@@ -56,7 +56,9 @@ module Reduction :
       * @param s   chaîne de caractères
       * @return    liste de chaînes de caractères plus "simples" au pire aussi longues que `s`
       *)
-    val string : char t -> string t
+    val string : char t -> string t   
+    
+    (*string t -> string list t*)
 
     (* LISTES *)
 
@@ -87,27 +89,77 @@ module Reduction :
   type 'a t = 'a -> 'a list ;;
 
   let empty = fun x -> [] ;;
-
+ 
   (* les bornes ne sont pas comprises donc on ne renvoie pas n *)
-  let int n = if n = 0 then [] else [0; (abs n); -abs n] ;;
+  let int n = if n = 0 then [] else [0; (abs n)-1; (-abs n)+1] ;;
 
-  (* List.init crée une liste d'entiers de 0 à n en prenant en paramètres la taille de la liste à créer et une fonction appliquée à chaque élément *)
-  let int_nonneg n = if n = 0 then [] else List.init (n+1) (fun i -> i) ;;
+  (* List.init crée une liste d'entiers de 0 à n-1 en prenant en paramètres la taille de la liste à créer et une fonction appliquée à chaque élément (identité) *)
+  let int_nonneg n = if n = 0 then [] else List.init (n) (fun i -> i) ;;
 
-  let float x = if x = 0.0 then [] else [0.0; abs_float x; -.(abs_float x)] ;;
+  (* on renvoie une liste de flottants en vérifiant que x ne soit pas dans la liste *)
+  let float x =
+    if x = 0.0 then []
+    else
+      let lst = [0.0; abs_float x; -.(abs_float x)] in
+      if List.mem x lst then List.filter (fun y -> y <> x) lst
+      else lst;;
 
-  let float_nonneg x = if x = 0.0 then [] else List.init 10 (fun i -> (float i) *. (x /. 10.0)) ;;
+  (* exemple : si x est égal à 1.0, la liste renvoyée sera [0.0; 0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.7; 0.8; 0.9]*)
+  let float_nonneg x = if x = 0.0 then [] else List.init 10 (fun i -> (float_of_int i) *. (x /. 10.0)) ;;
 
-  let char c = [] ;;
+  (* transforme un caractère en la liste des caractères avant lui dans la table ASCII *)
+  let char c = 
+    let ascii_value = int_of_char c in
+    let tab = 
+      if ascii_value >= 97 && ascii_value <= 122 then
+        [97; ascii_value - 1]
+      else if ascii_value >= 65 && ascii_value <= 90 then
+        [65; ascii_value - 1]
+      else
+        []
+    in
+    List.map char_of_int tab
+  ;;
 
-  (*let alphanum c =*)
+  (* transforme un caractère / chiffre en la liste de caractères / chiffres avant lui dans la table *)
+  let alphanum c = 
+    let ascii_value = int_of_char c in
+    let tab = 
+      if ascii_value >= 97 && ascii_value <= 122 then
+        [97; ascii_value - 1]
+      else if ascii_value >= 65 && ascii_value <= 90 then
+        [65; ascii_value - 1]
+      else if ascii_value >= 48 && ascii_value <= 57 then
+        [48; ascii_value - 1] 
+      else
+        []
+    in
+    List.map char_of_int tab
+  ;;
 
-  let string red s = [] ;;
+  let string red s =
+    let rec dernier (h :: t) = match t with
+      | [] -> h  
+      | _ -> dernier t 
+    in 
+      List.fold_left (fun acc c -> acc @ [String.concat (dernier acc) (red c)]) [""] s
 
-  let list red l = [] ;;
+  let list red l =
+    let rec dernier (h :: t) = match t with
+      | [] -> h
+      | _ -> dernier t in
+    List.fold_left (fun ps x -> ps @ [dernier ps @ [red x]]) [[]] l ;;
 
-  let combine fst_red snd_red (a, b) = [] ;;
+  (* Produit toutes les paires (a', b') où a' est une réduction de a selon fst_red, et b' est une réduction de b selon snd_red.
+     On itère sur a' selon fst_red avec fold_left,
+     puis on applique list_map pour obtenir une liste de paires (a', b') où b' est une réduction de b selon snd_red. 
+     Enfin, on concatène toutes les listes de paires ainsi obtenues à l'aide de l'opérateur @ *)
+  let combine fst_red snd_red =
+    fun (a, b) ->
+      List.fold_left (fun acc a' -> acc @ List.map (fun b' -> (a', b')) (snd_red b)) [] (fst_red a)
 
-  let filter p red x = [] ;;
-  
+  let filter p red =
+      fun x ->
+        List.filter p (red x)
+
   end ;;

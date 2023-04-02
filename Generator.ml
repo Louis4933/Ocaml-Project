@@ -133,7 +133,7 @@ module Generator :
     (* GENERATEUR DE CHAINE DE CARACTERES *)
     let string n gen =
       let rec generate i acc =
-        if i = n then String.concat "" List.rev acc (*if i = n then List.rev acc |> String.concat ""*)
+        if i = n then String.concat "" (List.map (String.make 1) acc)
         else generate (i + 1) ((gen ()) :: acc)
       in
       fun () -> generate 0 []
